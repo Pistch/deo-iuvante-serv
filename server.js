@@ -49,13 +49,13 @@ function createServer (serverConfig, databaseConfig) {
 
     http.listen(serverConfig.port, () => {
       // eslint-disable-next-line no-console
-      console.log(`API server listen at http://${serverConfig.host}:${serverConfig.port}`);
+      console.log(`API server listen at port ${serverConfig.port}`);
 
       resolve();
     });
   }));
 };
 
-createServer({ port: process.env.port || 8080 }, {
+createServer({ port: process.env.PORT || 8080 }, {
   database: 'deo-iuvante',
 });
