@@ -124,7 +124,7 @@ async function getMessages(db, currentUser, { roomId, limit = 10, offset = 0, fr
 
   return await db.collection('messages')
     .find(query)
-    .project(projection)
+    // .project(projection)
     .sort({ _id: 1 })
     .toArray();
 }
