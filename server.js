@@ -1,4 +1,5 @@
 const express = require('express');
+const fs = require('fs');
 
 const app = express();
 const http = require('http').Server(app);
@@ -7,6 +8,7 @@ const attachIO = require('socket.io');
 const cookieParser = require('socket.io-cookie-parser');
 const cookie = require('cookie-parser');
 const uuid = require('uuid/v4');
+const multipart = require('connect-multiparty')();
 
 const { connect } = require('./database');
 const attachController = require('./controller');
@@ -25,7 +27,16 @@ function createServer (serverConfig, databaseConfig) {
   return connect(databaseConfig).then(db => new Promise((resolve) => {
     app.use(cookie());
 
-    app.use(express.static(path.join(__dirname, '../../build')));
+    app.post('/upload', multipart, (req, res) => {
+      const filename = req.files.image.path.slice(req.files.image.path.lastIndexOf('/') + 1);
+
+      fs.rename(req.files.image.path, path.join(__dirname, './assets/' + filename), (err) => {
+        if (err) throw err;
+        res.end(filename);
+      });
+    });
+
+    app.use('/assets', express.static(path.join(__dirname, './assets')));
 
     app.use('/api/auth', (req, res) => {
       if (!req.cookies.sid) {
