@@ -50,16 +50,6 @@ async function sendMessage(db, user, message) {
 
   const { insertedId } = await db.collection('messages').insertOne(messageEntity);
 
-  await db.collection('rooms').updateOne({ _id: room._id }, {
-    $push: {
-      messages: {
-        $each: [insertedId.toString()],
-        $position: 0,
-      },
-    },
-    $inc: { messagesCount: 1 },
-  });
-
   return {
     ...messageEntity,
     _id: insertedId,
@@ -74,12 +64,12 @@ async function sendMessage(db, user, message) {
  * @return object
  */
 async function markAsRead(db, user, messageId) {
-  const room = db.collection('rooms').findOne({ messages: messageId, users: user._id.toString() });
+  const room = db.collection('rooms').findOne({ users: user._id.toString() });
   if (!room) {
-    throw new Error('Message not found');
+    throw new Error('Room not found');
   }
 
-  await db.collection('messages').updateOne({ _id: ObjectId(messageId) }, { $set: { read: true } });
+  await db.collection('messages').updateOne({ _id: ObjectId(messageId), roomId: room._id }, { $set: { read: true } });
   return { messageId, roomId: room._id.toString() };
 }
 
@@ -119,7 +109,7 @@ async function getMessages(db, currentUser, { roomId, limit = 10, offset = 0, fr
   if (from) {
     query._id = { $gt: ObjectId(from) };
   } else {
-    projection.$slice = [offset, limit];
+    projection.$slice = [-offset, -limit];
   }
 
   return await db.collection('messages')

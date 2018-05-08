@@ -23,25 +23,15 @@ const COLL = 'rooms';
  *
  * @return {Promise<Room>}
  */
-async function getRoom(db, id, user, messagesParams) {
-  const projection = { messages: { $slice: 5 } };
-  if (messagesParams) {
-    projection.messages.$slice = messagesParams;
-  }
+async function getRoom(db, id, user) {
+
 
   const room = await db.collection(COLL).find({
     _id: ObjectId(id.toString()),
     users: user._id.toString(),
-  }).project(projection).toArray();
+  }).toArray();
 
-  const messages = await db.collection('messages')
-    .find({ _id: { $in: room[0].messages.map(mId => ObjectId(mId)) } })
-    .toArray();
-
-  return {
-    ...room[0],
-    messages,
-  };
+  return room[0];
 }
 
 /**
@@ -61,20 +51,9 @@ async function saveRoom(db, room) {
  * @return {Promise<Room>}
  */
 async function getRooms(db, user) {
-  const rooms = await db.collection(COLL).find({
+  return await db.collection(COLL).find({
     users: user._id.toString(),
-  }).project({ messages: { $slice: 5 } }).toArray();
-
-  return Promise.all(rooms.map(async (room) => {
-    const messages = await db.collection('messages')
-      .find({ _id: { $in: room.messages.map(id => ObjectId(id)) } })
-      .toArray();
-
-    return {
-      ...room,
-      messages,
-    };
-  }));
+  }).toArray();
 }
 
 /**
@@ -99,8 +78,6 @@ async function createRoom(db, currentUser, room) {
 
   const toInsert = {
     ...room,
-    messages: [],
-    messagesCount: 0,
     name: users.map(user => user.name).join(', '),
   };
 
