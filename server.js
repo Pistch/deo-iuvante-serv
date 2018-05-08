@@ -30,9 +30,10 @@ function createServer (serverConfig, databaseConfig) {
     app.post('/upload', multipart, (req, res) => {
       const filename = req.files.image.path.slice(req.files.image.path.lastIndexOf('/') + 1);
 
-      fs.rename(req.files.image.path, path.join(__dirname, './assets/' + filename), (err) => {
+      fs.copyFile(req.files.image.path, path.join(__dirname, './assets/' + filename), 0, (err) => {
         if (err) throw err;
         res.end(filename);
+        fs.unlink(req.files.image.path, () => {});
       });
     });
 
