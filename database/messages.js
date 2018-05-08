@@ -108,14 +108,25 @@ async function markAllUnread(db, user, roomId) {
  *
  * @return {Promise<Pagination<Message>>}
  */
-async function getMessages(db, currentUser, { roomId, limit = 10, offset = 0 }) {
-  const room = await getRoom(db, roomId, currentUser, [offset, limit]);
+async function getMessages(db, currentUser, { roomId, limit = 10, offset = 0, from }) {
+  const room = await getRoom(db, roomId, currentUser);
 
-  if (!room) {
-    throw new Error(`Cannot find room with id=${roomId}`);
+  if (!room) throw new Error(`Room ${roomId} not found`);
+
+  const query = { roomId },
+    projection = {};
+
+  if (from) {
+    query._id = { $gt: ObjectId(from) };
+  } else {
+    projection.$slice = [offset, limit];
   }
 
-  return room.messages;
+  return await db.collection('messages')
+    .find(query)
+    .project(projection)
+    .sort({ _id: 1 })
+    .toArray();
 }
 
 module.exports = {
