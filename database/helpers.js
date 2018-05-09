@@ -76,9 +76,6 @@ async function insertOrUpdateEntity(collection, data) {
       { returnOriginal: false },
     );
 
-    // eslint-disable-next-line no-console
-    console.log(result);
-
     return result.value;
   }
 

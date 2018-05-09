@@ -1,5 +1,4 @@
 const express = require('express');
-const fs = require('fs');
 
 const app = express();
 const http = require('http').Server(app);
@@ -27,17 +26,9 @@ function createServer (serverConfig, databaseConfig) {
   return connect(databaseConfig).then(db => new Promise((resolve) => {
     app.use(cookie());
 
-    app.post('/upload', multipart, (req, res) => {
-      const filename = req.files.image.path.slice(req.files.image.path.lastIndexOf('/') + 1);
+    app.post('/upload-avatar', multipart, require('./fileHandlers').avatar(db));
 
-      fs.copyFile(req.files.image.path, path.join(__dirname, './assets/' + filename), 0, (err) => {
-        if (err) throw err;
-        res.end(filename);
-        fs.unlink(req.files.image.path, () => {});
-      });
-    });
-
-    app.use('/assets', express.static(path.join(__dirname, './assets')));
+    app.use('/avatars', express.static(path.join(__dirname, './avatars')));
 
     app.use('/api/auth', (req, res) => {
       if (!req.cookies.sid) {
@@ -56,8 +47,6 @@ function createServer (serverConfig, databaseConfig) {
     io.use(cookieParser());
 
     attachController(db, io);
-
-    app.use('/*', express.static(path.join(__dirname, '../../build/index.html')));
 
     http.listen(serverConfig.port, () => {
       // eslint-disable-next-line no-console
