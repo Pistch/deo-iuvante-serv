@@ -112,11 +112,13 @@ async function getMessages(db, currentUser, { roomId, limit = 10, offset = 0, fr
     projection.$slice = [-offset, -limit];
   }
 
-  return await db.collection('messages')
+  const messages =  await db.collection('messages')
     .find(query)
     // .project(projection)
     .sort({ _id: 1 })
     .toArray();
+
+  return messages;
 }
 
 module.exports = {
