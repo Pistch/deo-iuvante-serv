@@ -74,12 +74,10 @@ async function markAsRead(db, user, messageId) {
 }
 
 async function markAllUnread(db, user, roomId) {
-  const room = await db.collection('rooms').findOne({ _id: ObjectId(roomId) });
-
   await db
     .collection('messages')
     .updateMany({
-      _id: { $in: room.messages.map(id => ObjectId(id)) },
+      roomId,
       userId: { $ne: user._id.toString() },
       read: false,
     }, {
