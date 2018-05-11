@@ -119,9 +119,18 @@ async function getMessages(db, currentUser, { roomId, limit = 10, offset = 0, fr
   return messages;
 }
 
+async function getMessagesState(db, currentUser, messages) {
+  return messagesState =  await db.collection('messages')
+    .find({ _id: { $in: messages.map(m => ObjectId(m)) } })
+    .project({ read: 1 })
+    .sort({ _id: 1 })
+    .toArray();
+}
+
 module.exports = {
   sendMessage,
   getMessages,
   markAsRead,
   markAllUnread,
+  getMessagesState
 };

@@ -31,8 +31,6 @@ function createServer (serverConfig, databaseConfig) {
     app.use('/avatars', express.static(path.join(__dirname, './avatars')));
 
     app.use('/api/auth', (req, res) => {
-      console.log(req.query);
-
       if (!req.cookies.sid) {
         res.cookie('sid', uuid(), {
           httpOnly: true,

@@ -3,7 +3,7 @@ const {
   joinRoom, leaveRoom, getRooms, createRoom,
 } = require('./database/room');
 const {
-  getMessages, sendMessage, markAsRead, markAllUnread,
+  getMessages, sendMessage, markAsRead, markAllUnread, getMessagesState
 } = require('./database/messages');
 const TYPES = require('./messages');
 
@@ -223,12 +223,13 @@ module.exports = function (db, io) {
       socket.to(`room:${mark.roomId}`).emit(TYPES.MARK_AS_READ, { requestId, payload: mark });
     }));
 
-    socket.on(TYPES.MARK_ALL_UNREAD, wrapCallback(async ({ payload }) => {
+    socket.on(TYPES.MARK_ALL_UNREAD, wrapCallback(async ({ requestId, payload }) => {
       const currentUser = await userPromise;
 
       const roomId = await markAllUnread(db, currentUser, payload);
 
-      socket.to(`room:${roomId}`).emit(TYPES.MARK_ALL_UNREAD, roomId);
+      socket.emit(TYPES.MARK_ALL_UNREAD, { requestId, payload: roomId });
+      socket.to(`room:${roomId}`).emit(TYPES.MARK_ALL_UNREAD, { roomId, userId: currentUser._id.toString() });
     }));
 
     // Send message
@@ -236,6 +237,12 @@ module.exports = function (db, io) {
       const currentUser = await userPromise,
         messages = await getMessages(db, currentUser, payload);
       socket.emit(TYPES.MESSAGES, { requestId, payload: messages });
+    }));
+
+    socket.on(TYPES.MESSAGES_STATE, wrapCallback(async ({ requestId, payload }) => {
+      const currentUser = await userPromise,
+        messagesState = await getMessagesState(db, currentUser, payload);
+      socket.emit(TYPES.MESSAGES_STATE, { requestId, payload: messagesState });
     }));
 
     userPromise.then(async (user) => {
