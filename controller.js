@@ -232,7 +232,6 @@ module.exports = function (db, io) {
       socket.to(`room:${roomId}`).emit(TYPES.MARK_ALL_UNREAD, { roomId, userId: currentUser._id.toString() });
     }));
 
-    // Send message
     socket.on(TYPES.MESSAGES, wrapCallback(async ({ requestId, payload }) => {
       const currentUser = await userPromise,
         messages = await getMessages(db, currentUser, payload);
