@@ -14,7 +14,8 @@ const TYPES = require('./messages');
 // eslint-disable-next-line func-names
 module.exports = function (db, io) {
   const ONLINE = {};
-
+  console.log('Хуй говно');
+  
   /**
      * @param {Pagination<User>} users
      * @return {Pagination<User>}
